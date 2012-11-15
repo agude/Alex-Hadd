@@ -52,7 +52,8 @@ class hadd:
         infiles = list(self.infiles) # deep copies the list
         while True:
             currentWriteDir = mkdtemp(prefix=str(i)+"_", dir=self.tmpdir) + '/'
-            currentReadDir = self.__haddMultiple(currentWriteDir, infiles)
+            self.__haddMultiple(currentWriteDir, infiles)
+            currentReadDir = currentWriteDir
             infiles = listdirwithpath(currentReadDir)
             if len(infiles) == 1:
                 if self.verbose: print "Copying final file:",infiles[0],"-->",self.outfile
@@ -81,8 +82,6 @@ class hadd:
 
             outfile = self.__getRandomRootName(writeDir)
             self.__hadd(outfile, currentFiles)
-
-        return writeDir
 
     def __getRandomRootName(self, dir):
         """ Return a random file name """
