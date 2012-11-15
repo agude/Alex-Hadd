@@ -41,6 +41,7 @@ class hadd:
         self.vverbose = vverbose
         self.natonce = natonce
         self.save = save
+        self.counter = 0
         self.__setTmpDir(tmpdir)
 
     def run(self):
@@ -89,7 +90,9 @@ class hadd:
         ran = []
         for x in range(6):
             ran.append(choice(chars))
-        return dir + '/' + ''.join(ran) + ".root"
+        num = self.counter
+        self.counter += 1
+        return dir + '/input_%i_'%(num) + ''.join(ran) + ".root"
 
     def __setTmpDir(self,tmpdir):
         """ Set up a temporary directory to hold intermediate files """
