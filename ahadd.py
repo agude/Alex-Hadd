@@ -86,6 +86,7 @@ class hadd:
     def __getRandomRootName(self, dir):
         """ Return a random file name """
         chars = ascii_uppercase+digits+ascii_lowercase
+        ran = []
         for x in xrange(6):
             ran.append(choice(chars))
         num = self.counter
