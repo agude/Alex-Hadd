@@ -147,7 +147,7 @@ class hadd:
 """ Allows command line options to be parsed. Called first to in order to let functions use them.  """
 
 usage = "usage: %prog [Options] outputfile inputfiles"
-version = "%prog Version 1.0.0\n\nCopyright (C) 2012 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
+version = "%prog Version 1.1.0\n\nCopyright (C) 2012 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
 parser = OptionParser(usage=usage,version=version)
 parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="natonce", default=20, help="combine this many files at one time [defualt 4]")
 parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
