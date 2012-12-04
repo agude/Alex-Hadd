@@ -51,8 +51,6 @@ class hadd:
 
     def run(self):
         """ Combine files by looping over them """
-        self.__checkOutFile()
-
         if not self.quite: print "Combining files"
 
         i = 0
@@ -84,7 +82,7 @@ class hadd:
         overwrite """
         if not self.force_overwrite and isfile(self.outfile):
             print "Output file already exists! File:",self.outfile
-            exit(1) # Not enough commands
+            exit(1) # Other error
         elif self.force_overwrite and isfile(self.outfile):
             if not self.quite: print "Output file already exists; it will be overwriten! File:",self.outfile
 
@@ -92,6 +90,7 @@ class hadd:
         """ Clean up intermediate files """
         if not self.save:
             rmtree(self.tmpdir)
+        exit(0) # Normal exit
 
     def __haddMultiple(self, writeDir, inFiles):
         """ Given a list of inFiles, and a write dir, hadds the files and saves
@@ -177,6 +176,10 @@ else:
     out_file = args[0]
     in_files = args[1:]
 
+## Check that the number of files to hadd each step is sane
+if options.natonce <= 1:
+    print "Requested to hadd 1 or fewer files per iteration; this will never converge."
+    exit(1) # Other error
 
 ## Set up and run hadd
 h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.natonce)
