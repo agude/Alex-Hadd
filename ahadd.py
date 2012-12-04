@@ -33,12 +33,13 @@ def listdirwithpath(dir):
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, save=False, natonce=4):
+    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, save=False, natonce=20):
         """ Set up the class """
         self.outfile = outfile
         self.infiles = infiles
         self.verbose = verbose
         self.vverbose = vverbose
+        self.quite = quite
         self.natonce = natonce
         self.save = save
         self.counter = 0
@@ -46,7 +47,7 @@ class hadd:
 
     def run(self):
         """ Combine files by looping over them """
-        if self.verbose: print "Combining files"
+        if not self.quite: print "Combining files"
 
         i = 0
         infiles = list(self.infiles) # deep copies the list
@@ -56,7 +57,7 @@ class hadd:
             currentReadDir = currentWriteDir
             infiles = listdirwithpath(currentReadDir)
             if len(infiles) == 1:
-                if self.verbose: print "Copying final file:",infiles[0],"-->",self.outfile
+                if not self.quite: print "Copying final file:",infiles[0],"-->",self.outfile
                 copy2(infiles[0], self.outfile)
                 break
             else:
@@ -128,14 +129,17 @@ parser = OptionParser(usage=usage,version=version)
 parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="natonce", default=20, help="combine this many files at one time [defualt 4]")
 parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
 parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
-parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print status messages to stdout [default false]")
-parser.add_option("-q", "--quite", action="store_false", dest="verbose", default=False, help="do not print status messages to stdout")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
+parser.add_option("-q", "--quite", action="store_false", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
 parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd")
 
 (options, args) = parser.parse_args()
 
 ## Check verbosity
-if options.vverbose:
+if options.quite:
+    options.verbose = False
+    options.vverbose = False
+elif options.vverbose:
     options.verbose = True
 
 ## Check that we have at least a few files to work on
@@ -148,12 +152,13 @@ else:
     out_file = args[0]
     in_files = args[1:]
 
-if options.verbose: 
+if not options.quite:
     print "Output file:",out_file
+if options.verbose: 
     print "Input files:"
     for f in in_files:
         print "\t",f
 
 ## Set up and run hadd
-h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.save_tmp, options.natonce)
+h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.save_tmp, options.natonce)
 h.run()
