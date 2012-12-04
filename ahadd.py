@@ -130,7 +130,7 @@ parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="n
 parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
 parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
-parser.add_option("-q", "--quite", action="store_false", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
+parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
 parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd")
 
 (options, args) = parser.parse_args()
