@@ -23,6 +23,7 @@ from string import ascii_uppercase,digits,ascii_lowercase
 from sys import exit # Cleanly exit program
 from subprocess import call # Access external programs
 from os import listdir,remove,devnull
+from os.path import isfile
 from shutil import copy2,rmtree
 
 ## Help functions
@@ -33,20 +34,25 @@ def listdirwithpath(dir):
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, save=False, natonce=20):
+    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, natonce=20):
         """ Set up the class """
         self.outfile = outfile
         self.infiles = infiles
         self.verbose = verbose
         self.vverbose = vverbose
         self.quite = quite
+        self.force_overwrite = force_overwrite
         self.natonce = natonce
         self.save = save
         self.counter = 0
+        self.__checkOutFile()
+        self.__printInAndOut()
         self.__setTmpDir(tmpdir)
 
     def run(self):
         """ Combine files by looping over them """
+        self.__checkOutFile()
+
         if not self.quite: print "Combining files"
 
         i = 0
@@ -63,6 +69,24 @@ class hadd:
             else:
                 i += 1
         self.__cleanup()
+
+    def __printInAndOut(self):
+        """ Print the input files, and output file """
+        if not self.quite:
+            print "Output file:",out_file
+        if self.verbose: 
+            print "Input files:"
+            for f in in_files:
+                print "\t",f
+
+    def __checkOutFile(self):
+        """ Check if the output file exists, if so exit if we don't force
+        overwrite """
+        if not self.force_overwrite and isfile(self.outfile):
+            print "Output file already exists! File:",self.outfile
+            exit(1) # Not enough commands
+        elif self.force_overwrite and isfile(self.outfile):
+            if not self.quite: print "Output file already exists; it will be overwriten! File:",self.outfile
 
     def __cleanup(self):
         """ Clean up intermediate files """
@@ -131,7 +155,8 @@ parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_d
 parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
 parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
-parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd")
+parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd [default false]")
+parser.add_option("-f", "--force--overwrite", action="store_true", dest="force_overwrite", default=False, help="Overwrite the output file if it exists [default false]")
 
 (options, args) = parser.parse_args()
 
@@ -152,13 +177,7 @@ else:
     out_file = args[0]
     in_files = args[1:]
 
-if not options.quite:
-    print "Output file:",out_file
-if options.verbose: 
-    print "Input files:"
-    for f in in_files:
-        print "\t",f
 
 ## Set up and run hadd
-h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.save_tmp, options.natonce)
+h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.natonce)
 h.run()
