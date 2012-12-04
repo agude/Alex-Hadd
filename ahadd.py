@@ -72,10 +72,10 @@ class hadd:
         """ Print the input files, and output file """
         if not self.quite:
             print "Output file:",out_file
-        if self.verbose: 
             print "Input files:"
             for f in in_files:
                 print "\t",f
+            print "Number of files to hadd at once:",self.natonce
 
     def __checkOutFile(self):
         """ Check if the output file exists, if so exit if we don't force
