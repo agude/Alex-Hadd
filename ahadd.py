@@ -30,7 +30,7 @@ from os.path import isfile
 from shutil import copy2, rmtree
 
 
-## Help functions
+## Helper functions
 def listdirwithpath(d):
     """ Return a list of files with their path """
     return [d + '/' + f for f in listdir(d)]
@@ -92,7 +92,7 @@ class hadd:
             exit(1)  # Other error
         elif self.force_overwrite and isfile(self.outfile):
             if not self.quite:
-                print "Output file already exists; it will be overwriten! File:", self.outfile
+                print "Output file already exists; it will be overwritten! File:", self.outfile
 
     def __cleanup(self):
         """ Clean up intermediate files """
@@ -103,6 +103,9 @@ class hadd:
     def __haddMultiple(self, writeDir, inFiles):
         """ Given a list of inFiles, and a write dir, hadds the files and saves
         them to the directory """
+        totalNum = len(inFiles)
+        startNum = 1
+        endNum = None
         while inFiles:
             currentFiles = []
             if len(inFiles) >= self.natonce:
@@ -113,6 +116,11 @@ class hadd:
                 inFiles = []
 
             outfile = self.__getRandomRootName(writeDir)
+            # Print the set of files we're hadding
+            endNum = startNum + len(currentFiles) - 1
+            if not self.quite:
+                print "Now hadding files %i-%i of %i." % (startNum, endNum, totalNum)
+            startNum += len(currentFiles)
             self.__hadd(outfile, currentFiles)
 
     def __getRandomRootName(self, dir):
@@ -155,43 +163,44 @@ class hadd:
 
 
 ##### START OF CODE
-""" Allows command line options to be parsed. Called first to in order to let functions use them.  """
+if __name__ == '__main__':
+    """ Allows command line options to be parsed. Called first to in order to let functions use them.  """
 
-usage = "usage: %prog [Options] outputfile inputfiles"
-version = "%prog Version 1.2\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
-parser = OptionParser(usage=usage, version=version)
-parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="natonce", default=20, help="combine this many files at one time [defualt 4]")
-parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
-parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
-parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
-parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
-parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd [default false]")
-parser.add_option("-f", "--force-overwrite", action="store_true", dest="force_overwrite", default=False, help="Overwrite the output file if it exists [default false]")
+    usage = "usage: %prog [Options] output_file input_files"
+    version = "%prog Version 1.3\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
+    parser = OptionParser(usage=usage, version=version)
+    parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="natonce", default=20, help="combine this many files at one time [defualt 4]")
+    parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
+    parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
+    parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
+    parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd [default false]")
+    parser.add_option("-f", "--force-overwrite", action="store_true", dest="force_overwrite", default=False, help="Overwrite the output file if it exists [default false]")
 
-(options, args) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
-## Check verbosity
-if options.quite:
-    options.verbose = False
-    options.vverbose = False
-elif options.vverbose:
-    options.verbose = True
+    ## Check verbosity
+    if options.quite:
+        options.verbose = False
+        options.vverbose = False
+    elif options.vverbose:
+        options.verbose = True
 
-## Check that we have at least a few files to work on
-in_files = []
-out_file = None
-if len(args) <= 2:
-    print "Not enough arguments on the command line. Exiting."
-    exit(2)  # Not enough commands
-else:
-    out_file = args[0]
-    in_files = args[1:]
+    ## Check that we have at least a few files to work on
+    in_files = []
+    out_file = None
+    if len(args) <= 2:
+        print "Not enough arguments on the command line. Exiting."
+        exit(2)  # Not enough commands
+    else:
+        out_file = args[0]
+        in_files = args[1:]
 
-## Check that the number of files to hadd each step is sane
-if options.natonce <= 1:
-    print "Requested to hadd 1 or fewer files per iteration; this will never converge."
-    exit(1)  # Other error
+    ## Check that the number of files to hadd each step is sane
+    if options.natonce <= 1:
+        print "Requested to hadd 1 or fewer files per iteration; this will never converge."
+        exit(1)  # Other error
 
-## Set up and run hadd
-h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.natonce)
-h.run()
+    ## Set up and run hadd
+    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.natonce)
+    h.run()
