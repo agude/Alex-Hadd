@@ -1,3 +1,0 @@
-* Add in the number of files it is hadding at a time as a running count (that is adding 30-50 of 213).
-
-* Make sure that ahadd does nothing if there are no input files. 
