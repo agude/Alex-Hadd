@@ -16,7 +16,7 @@
 #  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 #  The most recent version of this program is avaible at:
-#  https://github.com/agude/ahadd
+#  https://github.com/agude/Alex-Hadd
 
 
 from optparse import OptionParser  # Command line parsing
