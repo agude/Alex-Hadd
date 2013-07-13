@@ -23,7 +23,7 @@ from tempfile import mkdtemp  # Secure methods of generating random directories
 from random import choice
 from string import ascii_uppercase, digits, ascii_lowercase
 from sys import exit  # Cleanly exit program
-from subprocess import check_call  # Access external programs
+from subprocess import call  # Access external programs
 from os import listdir, remove, devnull
 from os.path import isfile
 from shutil import copy2, rmtree
@@ -41,6 +41,7 @@ except ImportError:
 def listdirwithpath(d):
     """ Return a list of files with their path """
     return [d + '/' + f for f in listdir(d)]
+
 
 ## Worker function
 def haddMultiple(inputTuple):
@@ -62,13 +63,18 @@ def haddMultiple(inputTuple):
             print "\t\t", f
 
     # Call hadd
-    callOut = None
+    retcode = None
     if verbosity >= 0:
         print "Now hadding files %i-%i of %i." % (startNum, endNum, totalNum)
     if verbosity >= 2:
-        check_call(args)
+        retcode = call(args)
     else:
-        check_call(args, stdout=open(devnull, 'wb'))
+        retcode = call(args, stdout=open(devnull, 'wb'))
+    # Check to makesure that hadd did not throw an error
+    if retcode != 0:
+        print "Error from hadd!"
+        exit(retcode)
+
 
 ## Hadd class
 class hadd:
@@ -112,7 +118,7 @@ class hadd:
                 copy2(inFiles[0], self.outfile)
                 break
             else:
-                i += 1 
+                i += 1
         # Cleanup output files in the tmp directory
         self.__cleanup()
 
@@ -168,7 +174,7 @@ class hadd:
         totalNum = len(inFiles)
         for i in xrange(0, totalNum, self.nAtOne):
             outFile = self.__getRandomRootName(writeDir)
-            tmpList = inFiles[i:i+self.nAtOne]
+            tmpList = inFiles[i:i + self.nAtOne]
             startNum = i + 1
             endNum = i + len(tmpList)
             newTuple = (outFile, startNum, endNum, totalNum, verbosity, tmpList)
@@ -182,7 +188,6 @@ class hadd:
             rmtree(self.tmpdir)
         # It is not clear we want to force program termination
         #exit(0)  # Normal exit
-
 
     def __getRandomRootName(self, dir):
         """ Return a random file name """
@@ -207,22 +212,6 @@ class hadd:
         if self.verbose:
             print self.tmpdir
 
-    def __hadd(self, outfile, inFiles):
-        """ Call hadd """
-        args = ["hadd", outfile] + inFiles
-        if self.verbose:
-            print "Calling hadd"
-            print "\tOutput:", outfile
-            print "\tInput:"
-            for f in inFiles:
-                print "\t\t", f
-
-        if self.vverbose:
-            return (call(args), outfile)
-        else:
-            return (call(args, stdout=open(devnull, 'wb')), outfile)
-
-
 ##### START OF CODE
 if __name__ == '__main__':
 
@@ -243,7 +232,7 @@ if __name__ == '__main__':
     from optparse import OptionParser  # Command line parsing
 
     usage = "usage: %prog [Options] output_file input_files"
-    version = "%prog Version 2.0\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
+    version = "%prog Version 2.1\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
     parser = OptionParser(usage=usage, version=version)
     parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOne", default=20, help="combine this many files at one time [defualt 20]")
     parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
