@@ -1,7 +1,11 @@
 Alex Hadd
 =========
 
-Alex Hadd is a python wrapper around 'hadd', a utility for adding [CERN Root](http://root.cern.ch) histograms.
+Alex Hadd is a python wrapper around 'hadd', a utility for adding [CERN
+Root](http://root.cern.ch) histograms. It allows a list of files to be added in
+blocks instead of all at once (which can be useful if you are memory limited),
+and further allows each block to be added in parallel if your version of python
+supports the `multiprocessing` module.
 
 Usage
 -----
@@ -12,13 +16,13 @@ If the program is called as follows:
 
 It will provide the following usage guide:
 
-    Usage: ahadd.py [Options] outputfile inputfiles
+    Usage: ahadd.py [Options] output_file input_files
 
     Options:
       --version             show program's version number and exit
       -h, --help            show this help message and exit
-      -n NATONCE, --n-files-at-once=NATONCE
-                            combine this many files at one time [defualt 4]
+      -n NATONE, --n-files-at-once=NATONE
+                            combine this many files at one time [defualt 20]
       -t TMP_DIR, --temp-dir=TMP_DIR
                             location to store temporary intermediate files
       -s, --save-temp       save temporary files, otherwise they are cleaned up
@@ -31,6 +35,11 @@ It will provide the following usage guide:
                             false]
       -f, --force-overwrite
                             Overwrite the output file if it exists [default false]
+      -j NJOBS, --jobs=NJOBS
+                            use this many subprocess [default cpu_count*1.5 = N]
+
+Note that in the case of the `-j` flag, the 'N' in the help output will display
+the default calculated for your computer.
 
 The simplest usage case is:
 
