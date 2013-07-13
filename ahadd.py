@@ -19,7 +19,6 @@
 #  https://github.com/agude/Alex-Hadd
 
 
-from optparse import OptionParser  # Command line parsing
 from tempfile import mkdtemp  # Secure methods of generating random directories
 from random import choice
 from string import ascii_uppercase, digits, ascii_lowercase
@@ -28,6 +27,14 @@ from subprocess import call  # Access external programs
 from os import listdir, remove, devnull
 from os.path import isfile
 from shutil import copy2, rmtree
+
+# Multiprocessing does not exist on some of the older versions of Scientific
+# Linux that we still use at CERN
+HASMP = True
+try:
+    import multiprocessing as mp
+except ImportError:
+    HASMP = False
 
 
 ## Helper functions
@@ -39,7 +46,7 @@ def listdirwithpath(d):
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, natonce=20):
+    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOne=20, nJobs=1):
         """ Set up the class """
         self.outfile = outfile
         self.infiles = infiles
@@ -47,7 +54,8 @@ class hadd:
         self.vverbose = vverbose
         self.quite = quite
         self.force_overwrite = force_overwrite
-        self.natonce = natonce
+        self.nAtOne = nAtOne
+        self.nJobs = nJobs
         self.save = save
         self.counter = 0
         self.__checkOutFile()
@@ -82,7 +90,7 @@ class hadd:
             print "Input files:"
             for f in in_files:
                 print "\t", f
-            print "Number of files to hadd at once:", self.natonce
+            print "Number of files to hadd at once:", self.nAtOne
 
     def __checkOutFile(self):
         """ Check if the output file exists, if so exit if we don't force
@@ -108,8 +116,8 @@ class hadd:
         endNum = None
         while inFiles:
             currentFiles = []
-            if len(inFiles) >= self.natonce:
-                for i in xrange(self.natonce):
+            if len(inFiles) >= self.nAtOne:
+                for i in xrange(self.nAtOne):
                     currentFiles.append(inFiles.pop())
             else:
                 currentFiles = inFiles
@@ -164,18 +172,28 @@ class hadd:
 
 ##### START OF CODE
 if __name__ == '__main__':
-    """ Allows command line options to be parsed. Called first to in order to let functions use them.  """
+
+    # Set default jobs number
+    from math import floor
+    if HASMP:
+        NJOBS = int(floor(mp.cpu_count() * 1.5))
+    else:
+        NJOBS = 1
+
+    # Allows command line options to be parsed.
+    from optparse import OptionParser  # Command line parsing
 
     usage = "usage: %prog [Options] output_file input_files"
     version = "%prog Version 1.3\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
     parser = OptionParser(usage=usage, version=version)
-    parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="natonce", default=20, help="combine this many files at one time [defualt 4]")
+    parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOne", default=20, help="combine this many files at one time [defualt 4]")
     parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
     parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
     parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
     parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd [default false]")
     parser.add_option("-f", "--force-overwrite", action="store_true", dest="force_overwrite", default=False, help="Overwrite the output file if it exists [default false]")
+    parser.add_option("-j", "--jobs", action="store", type="int", dest="nJobs", default=NJOBS, help="use this many subprocess [default cpu_count*1.5 = %i]" % NJOBS)
 
     (options, args) = parser.parse_args()
 
@@ -197,10 +215,10 @@ if __name__ == '__main__':
         in_files = args[1:]
 
     ## Check that the number of files to hadd each step is sane
-    if options.natonce <= 1:
+    if options.nAtOne <= 1:
         print "Requested to hadd 1 or fewer files per iteration; this will never converge."
         exit(1)  # Other error
 
     ## Set up and run hadd
-    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.natonce)
+    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.nAtOne, options.nJobs)
     h.run()
