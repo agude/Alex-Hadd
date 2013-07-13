@@ -226,6 +226,12 @@ class hadd:
 ##### START OF CODE
 if __name__ == '__main__':
 
+    # Check if hadd exists
+    from distutils.spawn import find_executable
+    if find_executable("hadd") is None:
+        print "Can not find hadd."
+        exit(2)
+
     # Set default jobs number
     from math import floor
     if HasMP:
