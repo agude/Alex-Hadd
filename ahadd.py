@@ -252,6 +252,10 @@ if __name__ == '__main__':
     elif options.vverbose:
         options.verbose = True
 
+    ## Check nJobs
+    if not HasMP:
+        options.nJobs = 1
+
     ## Check that we have at least a few files to work on
     in_files = []
     out_file = None
