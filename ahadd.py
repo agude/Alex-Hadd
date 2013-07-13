@@ -23,18 +23,18 @@ from tempfile import mkdtemp  # Secure methods of generating random directories
 from random import choice
 from string import ascii_uppercase, digits, ascii_lowercase
 from sys import exit  # Cleanly exit program
-from subprocess import call  # Access external programs
+from subprocess import check_call  # Access external programs
 from os import listdir, remove, devnull
 from os.path import isfile
 from shutil import copy2, rmtree
 
 # Multiprocessing does not exist on some of the older versions of Scientific
 # Linux that we still use at CERN
-HASMP = True
+HasMP = True
 try:
     import multiprocessing as mp
 except ImportError:
-    HASMP = False
+    HasMP = False
 
 
 ## Helper functions
@@ -42,36 +42,41 @@ def listdirwithpath(d):
     """ Return a list of files with their path """
     return [d + '/' + f for f in listdir(d)]
 
-## Worker Function
+## Worker function
 def haddMultiple(inputTuple):
     """ Takes an inputTuple, hadds the files, and saves them to the given
     directory. The inputTuple has the following form:
     ( outFile, startNum, endNum, totalNum, verbosity, (file0, ..., fileN) ) """
 
     # Grab our arguments
-    (outFile, startNum, endNum, totalNum, verbosity, infiles) = inputTuple
+    (outFile, startNum, endNum, totalNum, verbosity, inFiles) = inputTuple
+    #print outFile, startNum, endNum, totalNum, verbosity, inFiles
 
     # Set verbosity
     args = ["hadd", outFile] + inFiles
-        if verbosity >= 1:
-            print "Calling hadd"
-            print "\tOutput:", outfile
-            print "\tInput:"
-            for f in infiles:
-                print "\t\t", f
+    if verbosity >= 1:
+        print "Calling hadd"
+        print "\tOutput:", outfile
+        print "\tInput:"
+        for f in inFiles:
+            print "\t\t", f
 
-        if verbosity >= 2:
-            return (call(args), outfile)
-        else:
-            return (call(args, stdout=open(devnull, 'wb')), outfile)
+    # Call hadd
+    callOut = None
+    if version >= 1:
+        print "Now hadding files %i-%i of %i." % (startNum, endNum, totalNum)
+    if verbosity >= 2:
+        check_call(args)
+    else:
+        check_call(args, stdout=open(devnull, 'wb'))
 
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, infiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOne=20, nJobs=1):
+    def __init__(self, outfile, inFiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOne=20, nJobs=1):
         """ Set up the class """
         self.outfile = outfile
-        self.infiles = infiles
+        self.inFiles = inFiles
         self.verbose = verbose
         self.vverbose = vverbose
         self.quite = quite
@@ -90,20 +95,40 @@ class hadd:
             print "Combining files"
 
         i = 0
-        infiles = list(self.infiles)  # deep copies the list
+        inFiles = list(self.inFiles)  # deep copies the list
         while True:
             currentWriteDir = mkdtemp(prefix=str(i) + "_", dir=self.tmpdir) + '/'
-            self.__haddMultiple(currentWriteDir, infiles)
+            # Tuplize Files into our special tuple
+            currentTuples = self.__tuplizeFiles(currentWriteDir, inFiles)
+            # Run Hadding
+            self.__haddMultiple(currentWriteDir, currentTuples)
+            # Check output files
             currentReadDir = currentWriteDir
-            infiles = listdirwithpath(currentReadDir)
-            if len(infiles) == 1:
+            inFiles = listdirwithpath(currentReadDir)
+            # If we have one file left, we're done
+            if len(inFiles) == 1:
                 if not self.quite:
-                    print "Copying final file:", infiles[0], "-->", self.outfile
-                copy2(infiles[0], self.outfile)
+                    print "Copying final file:", inFiles[0], "-->", self.outfile
+                copy2(inFiles[0], self.outfile)
                 break
             else:
-                i += 1
+                i += 1 
+        # Cleanup output files in the tmp directory
         self.__cleanup()
+
+    def __haddMultiple(self, writeDir, inTuples):
+        """ Given a list of inFiles, and a write dir, hadds the files and saves
+        them to the directory """
+        # Single Job
+        if self.nJobs <= 1:
+            for tup in inTuples:
+                haddMultiple(tup)
+        # Multiple Jobs
+        else:
+            pool = mp.Pool(processes=self.nJobs)
+            pool.map(haddMultiple, inTuples)  # Note, no return values so we don't care about them
+            pool.close()  # No more tasks to add
+            pool.join()  # Wait for jobs to finish
 
     def __printInAndOut(self):
         """ Print the input files, and output file """
@@ -124,34 +149,37 @@ class hadd:
             if not self.quite:
                 print "Output file already exists; it will be overwritten! File:", self.outfile
 
+    def __tuplizeFiles(self, writeDir, inFiles):
+        """ Takes the input list and writes a specialized tuple of them """
+        fileTuple = []
+
+        # Set verbosity
+        if self.verbose:
+            if self.vverbose:
+                verbosity = 2
+            else:
+                verbosity = 1
+        else:
+            verbosity = 0
+
+        # Loop to fill tuples
+        totalNum = len(inFiles)
+        for i in xrange(0, totalNum, self.nAtOne):
+            outFile = self.__getRandomRootName(writeDir)
+            startNum = i + 1
+            endNum = i + self.nAtOne
+            newTuple = ( outFile, startNum, endNum, totalNum, verbosity, inFiles[i:i+self.nAtOne])
+            fileTuple.append(newTuple)
+
+        return tuple(fileTuple)
+
     def __cleanup(self):
         """ Clean up intermediate files """
         if not self.save:
             rmtree(self.tmpdir)
-        exit(0)  # Normal exit
+        # It is not clear we want to force program termination
+        #exit(0)  # Normal exit
 
-    def __haddMultiple(self, writeDir, inFiles):
-        """ Given a list of inFiles, and a write dir, hadds the files and saves
-        them to the directory """
-        totalNum = len(inFiles)
-        startNum = 1
-        endNum = None
-        while inFiles:
-            currentFiles = []
-            if len(inFiles) >= self.nAtOne:
-                for i in xrange(self.nAtOne):
-                    currentFiles.append(inFiles.pop())
-            else:
-                currentFiles = inFiles
-                inFiles = []
-
-            outfile = self.__getRandomRootName(writeDir)
-            # Print the set of files we're hadding
-            endNum = startNum + len(currentFiles) - 1
-            if not self.quite:
-                print "Now hadding files %i-%i of %i." % (startNum, endNum, totalNum)
-            startNum += len(currentFiles)
-            self.__hadd(outfile, currentFiles)
 
     def __getRandomRootName(self, dir):
         """ Return a random file name """
@@ -176,14 +204,14 @@ class hadd:
         if self.verbose:
             print self.tmpdir
 
-    def __hadd(self, outfile, infiles):
+    def __hadd(self, outfile, inFiles):
         """ Call hadd """
-        args = ["hadd", outfile] + infiles
+        args = ["hadd", outfile] + inFiles
         if self.verbose:
             print "Calling hadd"
             print "\tOutput:", outfile
             print "\tInput:"
-            for f in infiles:
+            for f in inFiles:
                 print "\t\t", f
 
         if self.vverbose:
@@ -197,7 +225,7 @@ if __name__ == '__main__':
 
     # Set default jobs number
     from math import floor
-    if HASMP:
+    if HasMP:
         NJOBS = int(floor(mp.cpu_count() * 1.5))
     else:
         NJOBS = 1
