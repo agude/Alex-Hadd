@@ -63,7 +63,7 @@ def haddMultiple(inputTuple):
 
     # Call hadd
     callOut = None
-    if version >= 1:
+    if verbosity >= 0:
         print "Now hadding files %i-%i of %i." % (startNum, endNum, totalNum)
     if verbosity >= 2:
         check_call(args)
@@ -159,16 +159,19 @@ class hadd:
                 verbosity = 2
             else:
                 verbosity = 1
-        else:
+        elif not self.quite:
             verbosity = 0
+        else:
+            verbosity = -1
 
         # Loop to fill tuples
         totalNum = len(inFiles)
         for i in xrange(0, totalNum, self.nAtOne):
             outFile = self.__getRandomRootName(writeDir)
+            tmpList = inFiles[i:i+self.nAtOne]
             startNum = i + 1
-            endNum = i + self.nAtOne
-            newTuple = ( outFile, startNum, endNum, totalNum, verbosity, inFiles[i:i+self.nAtOne])
+            endNum = i + len(tmpList)
+            newTuple = (outFile, startNum, endNum, totalNum, verbosity, tmpList)
             fileTuple.append(newTuple)
 
         return tuple(fileTuple)
