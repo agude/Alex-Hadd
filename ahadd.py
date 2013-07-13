@@ -42,6 +42,28 @@ def listdirwithpath(d):
     """ Return a list of files with their path """
     return [d + '/' + f for f in listdir(d)]
 
+## Worker Function
+def haddMultiple(inputTuple):
+    """ Takes an inputTuple, hadds the files, and saves them to the given
+    directory. The inputTuple has the following form:
+    ( outFile, startNum, endNum, totalNum, verbosity, (file0, ..., fileN) ) """
+
+    # Grab our arguments
+    (outFile, startNum, endNum, totalNum, verbosity, infiles) = inputTuple
+
+    # Set verbosity
+    args = ["hadd", outFile] + inFiles
+        if verbosity >= 1:
+            print "Calling hadd"
+            print "\tOutput:", outfile
+            print "\tInput:"
+            for f in infiles:
+                print "\t\t", f
+
+        if verbosity >= 2:
+            return (call(args), outfile)
+        else:
+            return (call(args, stdout=open(devnull, 'wb')), outfile)
 
 ## Hadd class
 class hadd:
