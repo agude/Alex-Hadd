@@ -79,7 +79,7 @@ def haddMultiple(inputTuple):
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, inFiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOne=20, nJobs=1):
+    def __init__(self, outfile, inFiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOnce=20, nJobs=1):
         """ Set up the class """
         self.outfile = outfile
         self.inFiles = inFiles
@@ -87,7 +87,7 @@ class hadd:
         self.vverbose = vverbose
         self.quite = quite
         self.force_overwrite = force_overwrite
-        self.nAtOne = nAtOne
+        self.nAtOnce = nAtOnce
         self.nJobs = nJobs
         self.save = save
         self.counter = 0
@@ -143,7 +143,7 @@ class hadd:
             print "Input files:"
             for f in in_files:
                 print "\t", f
-            print "Number of files to hadd at once:", self.nAtOne
+            print "Number of files to hadd at once:", self.nAtOnce
 
     def __checkOutFile(self):
         """ Check if the output file exists, if so exit if we don't force
@@ -172,9 +172,9 @@ class hadd:
 
         # Loop to fill tuples
         totalNum = len(inFiles)
-        for i in xrange(0, totalNum, self.nAtOne):
+        for i in xrange(0, totalNum, self.nAtOnce):
             outFile = self.__getRandomRootName(writeDir)
-            tmpList = inFiles[i:i + self.nAtOne]
+            tmpList = inFiles[i:i + self.nAtOnce]
             startNum = i + 1
             endNum = i + len(tmpList)
             newTuple = (outFile, startNum, endNum, totalNum, verbosity, tmpList)
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     usage = "usage: %prog [Options] output_file input_files"
     version = "%prog Version 2.1\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
     parser = OptionParser(usage=usage, version=version)
-    parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOne", default=20, help="combine this many files at one time [defualt 20]")
+    parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOnce", default=20, help="combine this many files at one time [defualt 20]")
     parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
     parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
@@ -263,10 +263,10 @@ if __name__ == '__main__':
         in_files = args[1:]
 
     ## Check that the number of files to hadd each step is sane
-    if options.nAtOne <= 1:
+    if options.nAtOnce <= 1:
         print "Requested to hadd 1 or fewer files per iteration; this will never converge."
         exit(1)  # Other error
 
     ## Set up and run hadd
-    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.nAtOne, options.nJobs)
+    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.nAtOnce, options.nJobs)
     h.run()
