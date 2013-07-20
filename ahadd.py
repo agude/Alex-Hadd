@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 #  Copyright (C) 2013  Alexander Gude - gude@physics.umn.edu
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -232,7 +233,7 @@ if __name__ == '__main__':
     from optparse import OptionParser  # Command line parsing
 
     usage = "usage: %prog [Options] output_file input_files"
-    version = "%prog Version 2.1\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
+    version = "%prog Version 2.2\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
     parser = OptionParser(usage=usage, version=version)
     parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOnce", default=20, help="combine this many files at one time [defualt 20]")
     parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
@@ -259,7 +260,13 @@ if __name__ == '__main__':
     ## Check that we have at least a few files to work on
     in_files = []
     out_file = None
-    if len(args) <= 2:
+    if len(args) == 2:  # One input file means we can just copy it
+        if not options.quite:
+            print "Only one input file; running a simple copy!"
+            print "Copying final file:", args[1], "-->", args[0]
+        copy2(args[1], args[0])
+        exit(0)
+    elif len(args) <= 1:
         print "Not enough arguments on the command line. Exiting."
         exit(2)  # Not enough commands
     else:
