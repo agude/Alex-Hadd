@@ -29,7 +29,7 @@ It will provide the following usage guide:
                             when the program exits [default false]
       -v, --verbose         print some extra status messages to stdout [default
                             false]
-      -q, --quite           do not print any status messages to stdout [default
+      -q, --quiet           do not print any status messages to stdout [default
                             false]
       -V, --very-verbose    print everything, even the output from hadd [default
                             false]
