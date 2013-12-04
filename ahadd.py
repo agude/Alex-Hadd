@@ -233,13 +233,13 @@ if __name__ == '__main__':
     from optparse import OptionParser  # Command line parsing
 
     usage = "usage: %prog [Options] output_file input_files"
-    version = "%prog Version 2.3.1\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
+    version = "%prog Version 2.3.2\n\nCopyright (C) 2013 Alexander Gude - gude@physics.umn.edu\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Alexander Gude."
     parser = OptionParser(usage=usage, version=version)
     parser.add_option("-n", "--n-files-at-once", action="store", type="int", dest="nAtOnce", default=20, help="combine this many files at one time [defualt 20]")
     parser.add_option("-t", "--temp-dir", action="store", type="string", dest="tmp_dir", default=None, help="location to store temporary intermediate files")
     parser.add_option("-s", "--save-temp", action="store_true", dest="save_tmp", default=False, help="save temporary files, otherwise they are cleaned up when the program exits [default false]")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="print some extra status messages to stdout [default false]")
-    parser.add_option("-q", "--quite", action="store_true", dest="quite", default=False, help="do not print any status messages to stdout [default false]")
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="do not print any status messages to stdout [default false]")
     parser.add_option("-V", "--very-verbose", action="store_true", dest="vverbose", default=False, help="print everything, even the output from hadd [default false]")
     parser.add_option("-f", "--force-overwrite", action="store_true", dest="force_overwrite", default=False, help="Overwrite the output file if it exists [default false]")
     parser.add_option("-j", "--jobs", action="store", type="int", dest="nJobs", default=NJOBS, help="use this many subprocess [default cpu_count*1.5 = %i]" % NJOBS)
