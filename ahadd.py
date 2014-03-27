@@ -80,13 +80,13 @@ def haddMultiple(inputTuple):
 ## Hadd class
 class hadd:
     """ A class to handle hadding of files, and cleanup of output """
-    def __init__(self, outfile, inFiles, tmpdir, verbose=False, vverbose=False, quite=False, force_overwrite=False, save=False, nAtOnce=20, nJobs=1):
+    def __init__(self, outfile, inFiles, tmpdir, verbose=False, vverbose=False, quiet=False, force_overwrite=False, save=False, nAtOnce=20, nJobs=1):
         """ Set up the class """
         self.outfile = outfile
         self.inFiles = inFiles
         self.verbose = verbose
         self.vverbose = vverbose
-        self.quite = quite
+        self.quiet = quiet
         self.force_overwrite = force_overwrite
         self.nAtOnce = nAtOnce
         self.nJobs = nJobs
@@ -98,7 +98,7 @@ class hadd:
 
     def run(self):
         """ Combine files by looping over them """
-        if not self.quite:
+        if not self.quiet:
             print "Combining files"
 
         i = 0
@@ -114,7 +114,7 @@ class hadd:
             inFiles = listdirwithpath(currentReadDir)
             # If we have one file left, we're done
             if len(inFiles) == 1:
-                if not self.quite:
+                if not self.quiet:
                     print "Copying final file:", inFiles[0], "-->", self.outfile
                 copy2(inFiles[0], self.outfile)
                 break
@@ -139,7 +139,7 @@ class hadd:
 
     def __printInAndOut(self):
         """ Print the input files, and output file """
-        if not self.quite:
+        if not self.quiet:
             print "Output file:", out_file
             print "Input files:"
             for f in in_files:
@@ -153,7 +153,7 @@ class hadd:
             print "Output file already exists! File:", self.outfile
             exit(1)  # Other error
         elif self.force_overwrite and isfile(self.outfile):
-            if not self.quite:
+            if not self.quiet:
                 print "Output file already exists; it will be overwritten! File:", self.outfile
 
     def __tuplizeFiles(self, writeDir, inFiles):
@@ -166,7 +166,7 @@ class hadd:
                 verbosity = 2
             else:
                 verbosity = 1
-        elif not self.quite:
+        elif not self.quiet:
             verbosity = 0
         else:
             verbosity = -1
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     ## Check verbosity
-    if options.quite:
+    if options.quiet:
         options.verbose = False
         options.vverbose = False
     elif options.vverbose:
@@ -261,7 +261,7 @@ if __name__ == '__main__':
     in_files = []
     out_file = None
     if len(args) == 2:  # One input file means we can just copy it
-        if not options.quite:
+        if not options.quiet:
             print "Only one input file; running a simple copy!"
             print "Copying final file:", args[1], "-->", args[0]
         copy2(args[1], args[0])
@@ -279,5 +279,5 @@ if __name__ == '__main__':
         exit(1)  # Other error
 
     ## Set up and run hadd
-    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quite, options.force_overwrite, options.save_tmp, options.nAtOnce, options.nJobs)
+    h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quiet, options.force_overwrite, options.save_tmp, options.nAtOnce, options.nJobs)
     h.run()
