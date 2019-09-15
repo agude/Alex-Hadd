@@ -29,6 +29,9 @@ from os import listdir, remove, devnull
 from os.path import isfile
 from shutil import copy2, rmtree
 
+# Library version
+__version__ = "2.4.0"
+
 # Multiprocessing does not exist on some of the older versions of Scientific
 # Linux that we still use at CERN
 HasMP = True
@@ -213,9 +216,7 @@ class hadd:
         if self.verbose:
             print self.tmpdir
 
-##### START OF CODE
-if __name__ == '__main__':
-
+def main():
     # Check if hadd exists
     from distutils.spawn import find_executable
     if find_executable("hadd") is None:
@@ -281,3 +282,7 @@ if __name__ == '__main__':
     ## Set up and run hadd
     h = hadd(out_file, in_files, options.tmp_dir, options.verbose, options.vverbose, options.quiet, options.force_overwrite, options.save_tmp, options.nAtOnce, options.nJobs)
     h.run()
+
+##### START OF CODE
+if __name__ == '__main__':
+    main()
