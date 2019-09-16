@@ -15,11 +15,13 @@ import logging
 
 
 # Library version
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 
 
 @unique
 class EXIT(IntEnum):
+    """ Shell exit codes used in this program. """
+
     GOOD = 0
     GENERIC_BAD = 1
     MISSING_HADD = 2
@@ -255,15 +257,13 @@ def main():
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     )
     argparser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s {version}".format(version=__version__),
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
     args = argparser.parse_args()
     logging.basicConfig(level=args.log_level)
 
-    logging.debug("Arguments: {args}".format(args=args))
+    logging.debug("Arguments: %s", args)
 
     # Check if hadd exists
     if find_executable("hadd") is None:
