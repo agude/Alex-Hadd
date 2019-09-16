@@ -30,7 +30,7 @@ setup(
     author="Alexander Gude",
     author_email="alex.public.account@gmail.com",
     url="https://github.com/agude/Alex-Hadd",
-    license="GPLv3+",
+    license="MIT",
     platforms=["any"],
     packages=["ahadd"],
     entry_points={
@@ -42,10 +42,12 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+        "OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Utilities",
     ],
     keywords=[
@@ -59,5 +61,5 @@ setup(
         "pytest-runner",
     ],
     tests_require=["pytest"],
-    python_requires="==2.7",
+    python_requires=">=3.6, <4",
 )
